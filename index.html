@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthlings' Roll Call (Alpha)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #020617; color: #f8fafc; font-family: sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-earth { background: linear-gradient(90deg, #38bdf8, #818cf8); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="glass max-w-lg w-full rounded-3xl p-8 shadow-2xl">
+        <div id="s1">
+            <h1 class="text-3xl font-bold text-sky-400 text-center mb-6">Earthlings' Roll Call</h1>
+            <p class="text-center mb-6 text-slate-300">Привет! Я прошу Вас пройти коротенький тест. Возможно, в Вас пророс Землянин.</p>
+            <input type="text" id="userName" class="w-full bg-slate-800 rounded-xl p-4 mb-4 text-white" placeholder="Как к Вам обратиться?">
+            <button onclick="startTest()" class="btn-earth w-full py-4 rounded-xl font-bold uppercase">Начать перекличку</button>
+        </div>
+
+        <div id="s2" class="hidden">
+            <div id="questions" class="space-y-3 mb-6"></div>
+            <button onclick="calc()" class="btn-earth w-full py-4 rounded-xl font-bold uppercase">Результат</button>
+        </div>
+
+        <div id="s3" class="hidden text-center">
+            <h2 id="status" class="text-4xl font-bold mb-4"></h2>
+            <p id="msg" class="mb-8 text-slate-300"></p>
+            
+            <div id="participation-form" class="hidden space-y-4">
+                <h3 class="text-emerald-400 font-bold">🏗️ Создание Храмов</h3>
+                <p class="text-xs">11. Готовы ли вы лично прийти в Мастерскую, когда она откроется в вашем районе?</p>
+                <input type="text" id="contact" class="w-full bg-slate-800 rounded-xl p-3 text-white" placeholder="Ваш Telegram или Email">
+                <button onclick="save()" class="bg-emerald-600 w-full py-3 rounded-xl font-bold">ОТПРАВИТЬ В БАЗУ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://hgewwcxlhtuhzvkblpvi.supabase.co';
+        const SUPABASE_KEY = 'Sb_publishable_JU4Yr6QWwdq7YEMbcdwrTg_sZXV25ic';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const qs = [
+            "Жизнь любого человека имеет равную ценность?",
+            "Ресурсы Земли должны принадлежать всем?",
+            "Границы стран — это искусственная преграда?",
+            "Готовы трудиться бесплатно, если нужды закрыты?",
+            "Конфликты решаются разумом, а не силой?",
+            "Готовы делиться знаниями бесплатно?",
+            "Чувствуете ответственность за всю планету?",
+            "Верите, что человечество может жить без войн?",
+            "Готовы доверять другому Землянину?",
+            "Готовы начать менять мир с себя?"
+        ];
+
+        function startTest() {
+            if(!document.getElementById('userName').value) return alert("Введите имя");
+            document.getElementById('s1').classList.add('hidden');
+            document.getElementById('s2').classList.remove('hidden');
+            const cont = document.getElementById('questions');
+            qs.forEach(q => {
+                cont.innerHTML += `<label class="flex items-center bg-slate-800 p-3 rounded-xl cursor-pointer"><input type="checkbox" class="q-check mr-3">${q}</label>`;
+            });
+        }
+
+        function calc() {
+            const score = document.querySelectorAll('.q-check:checked').length;
+            document.getElementById('s2').classList.add('hidden');
+            document.getElementById('s3').classList.remove('hidden');
+            const st = document.getElementById('status');
+            if(score === 10) {
+                st.innerText = "Землянин";
+                document.getElementById('participation-form').classList.remove('hidden');
+            } else {
+                st.innerText = score >= 7 ? "Ищущий" : "Homo Sapiens";
+                document.getElementById('msg').innerText = "Спасибо за участие в перекличке!";
+            }
+        }
+
+        async function save() {
+            const userData = {
+                name: document.getElementById('userName').value,
+                status: document.getElementById('status').innerText,
+                score: document.querySelectorAll('.q-check:checked').length,
+                participation: { contact: document.getElementById('contact').value, ready: true }
+            };
+            const { error } = await _supabase.from('users').insert([userData]);
+            if(error) alert("Ошибка: " + error.message);
+            else { alert("Данные в базе!"); location.reload(); }
+        }
+    </script>
+</body>
+</html>
