@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earthlings' Roll Call (Alpha)</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthlings' Roll Call</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -14,129 +13,58 @@
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
-
     <div id="app" class="glass max-w-lg w-full rounded-3xl p-8 shadow-2xl">
         <div id="s1">
             <h1 class="text-3xl font-bold text-sky-400 text-center mb-6">Earthlings' Roll Call</h1>
-            <p class="text-center mb-6 text-slate-300">Привет! Вы тоже устали от войн, алчности и глобальной несправедливости - возможно в Вас пророс Землянин. Я прошу Вас пройти коротенький тест.</p>
-            <input type="text" id="userName" class="w-full bg-slate-800 rounded-xl p-4 mb-4 text-white focus:ring-2 focus:ring-sky-500 outline-none" placeholder="Как к Вам обратиться?">
-            <button onclick="startTest()" class="btn-earth w-full py-4 rounded-xl font-bold uppercase">Начать перекличку</button>
+            <input type="text" id="userName" class="w-full bg-slate-800 rounded-xl p-4 mb-4 text-white outline-none" placeholder="Ваше имя">
+            <button onclick="startTest()" class="btn-earth w-full py-4 rounded-xl font-bold uppercase">Начать</button>
         </div>
-
         <div id="s2" class="hidden">
-            <div id="questions" class="space-y-3 mb-6"></div>
-            <button onclick="calc()" class="btn-earth w-full py-4 rounded-xl font-bold uppercase">Результат</button>
+            <div id="questions" class="space-y-3 mb-6 text-sm"></div>
+            <button onclick="calc()" class="btn-earth w-full py-4 rounded-xl font-bold uppercase text-xs">РЕЗУЛЬТАТ</button>
         </div>
-
         <div id="s3" class="hidden text-center">
-            <h2 id="status" class="text-4xl font-bold mb-4"></h2>
-            <p id="msg" class="mb-8 text-slate-300"></p>
-            
-            <div id="participation-form" class="hidden space-y-4 text-left">
-                <h3 class="text-emerald-400 font-bold text-center">🏗️ Создание Храмов</h3>
-                <p class="text-xs text-slate-400">11. Готовы ли вы лично прийти в Мастерскую, когда она откроется в вашем районе?</p>
-                <input type="text" id="contact" class="w-full bg-slate-800 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-emerald-500" placeholder="Ваш контакт (TG/Email/Signal)">
-                <button onclick="save()" id="final-btn" class="bg-emerald-600 w-full py-4 rounded-xl font-bold uppercase hover:bg-emerald-500 transition-colors">ОТПРАВИТЬ В БАЗУ</button>
+            <h2 id="status" class="text-4xl font-bold mb-4 text-sky-400"></h2>
+            <div id="participation-form" class="space-y-4 text-left">
+                <input type="text" id="contact" class="w-full bg-slate-800 rounded-xl p-3 text-white outline-none" placeholder="TG для связи">
+                <button onclick="save()" id="final-btn" class="bg-emerald-600 w-full py-4 rounded-xl font-bold uppercase">ОТПРАВИТЬ</button>
             </div>
         </div>
     </div>
-
     <script>
         const SUPABASE_URL = 'https://hgewwcxlhtuhzvkblpvi.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnZXd3Y3hsaHR1aHp2a2JscHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTI2NTksImV4cCI6MjA5MTc2ODY1OX0.m8Q48c6XQj5JaZ-H1ECvFBGHzNomlkpdRtpa42ijyGo';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        const qs = [
-            "Считаете ли вы, что жизнь человека на другом конце планеты так же важна, как жизнь соседа?",
-            "Готовы ли вы признать, что недра Земли и технологии должны принадлежать всем людям в равной степени?",
-            "Границы стран — это искусственная преграда?",
-            "Стали бы вы заниматься своим делом, если бы за это не платили деньги, но обеспечивали все ваши потребности?",
-            "Верите ли вы, что любой конфликт можно решить разумом, а не силой?",
-            "Готовы ли вы делиться своим опытом и умениями с любым человеком бесплатно?",
-            "Чувствуете ответственность за всю планету, а не только за свой двор?",
-            "Верите, что человечество может жить без войн, если убрать искусственный дефицит ресурсов?",
-            "Готовы доверять другому Землянину?",
-            "Готовы начать менять мир с себя?"
-        ];
-
-        function startTest() {
-            const nameInput = document.getElementById('userName');
-            if(!nameInput.value.trim()) return alert("Пожалуйста, введите ваше имя");
-            
+        const qs = ["Жизнь важна?","Ресурсы общие?","Границы — преграда?","Труд во благо?","Мир без войн?","Делиться опытом?","Ответственность?","Без дефицита?","Доверие?","Начать с себя?"];
+        function startTest(){
             document.getElementById('s1').classList.add('hidden');
             document.getElementById('s2').classList.remove('hidden');
-            
             const cont = document.getElementById('questions');
-            cont.innerHTML = ''; // Очистка, чтобы вопросы не дублировались
-            qs.forEach(q => {
-                cont.innerHTML += `<label class="flex items-center bg-slate-800 p-3 rounded-xl cursor-pointer hover:bg-slate-700 transition-colors">
-                    <input type="checkbox" class="q-check mr-3 w-5 h-5 accent-sky-500">
-                    <span class="text-sm">${q}</span>
-                </label>`;
-            });
+            cont.innerHTML = '';
+            qs.forEach(q => cont.innerHTML += `<label class="flex items-center bg-slate-800 p-3 rounded-xl mb-2 cursor-pointer"><input type="checkbox" class="q-check mr-3 w-4 h-4 accent-sky-500"><span>${q}</span></label>`);
         }
-
-        function calc() {
-            const score = document.querySelectorAll('.q-check:checked').length;
+        function calc(){
             document.getElementById('s2').classList.add('hidden');
             document.getElementById('s3').classList.remove('hidden');
-            
-            const st = document.getElementById('status');
-            const msg = document.getElementById('msg');
-            
-            if(score === 10) {
-                st.innerText = "Землянин";
-                st.className = "text-4xl font-bold mb-4 text-sky-400";
-                document.getElementById('participation-form').classList.remove('hidden');
-            } else {
-                st.innerText = score >= 7 ? "Ищущий" : "Homo Sapiens";
-                st.className = "text-4xl font-bold mb-4 text-slate-400";
-                msg.innerText = "Спасибо за участие в перекличке! Скоро вы увидите свой город на карте.";
-            }
+            document.getElementById('status').innerText = "Землянин";
         }
-
-        async function save() {
+        async function save(){
             const btn = document.getElementById('final-btn');
-            const originalText = btn.innerText;
-            btn.innerText = "СВЯЗЬ С ПЛАНЕТОЙ...";
-            btn.disabled = true;
-
-            let city = "Unknown Region";
+            btn.disabled = true; btn.innerText = "СВЯЗЬ...";
+            let region = "Kyiv, Ukraine"; 
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
-                
-                const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
-                const geo = await response.json();
-                city = geo.city && geo.country_name ? `${geo.city}, ${geo.country_name}` : "Unknown Region";
-                clearTimeout(timeoutId);
-            } catch (e) { 
-                console.log("Geo lookup skipped"); 
-            }
-
-            const userData = {
+                const res = await fetch('https://ipapi.co/json/');
+                const geo = await res.json();
+                region = `${geo.city}, ${geo.country_name}`;
+            } catch(e){}
+            const { error } = await _supabase.from('users').insert([{
                 name: document.getElementById('userName').value,
                 status: document.getElementById('status').innerText,
-                score: document.querySelectorAll('.q-check:checked').length,
-                region: city,
-                participation: { 
-                    contact: document.getElementById('contact').value, 
-                    ready: true 
-                }
-            };
-
-            const { error } = await _supabase.from('users').insert([userData]);
-            
-            if(error) {
-                alert("Ошибка связи: " + error.message);
-                btn.disabled = false;
-                btn.innerText = originalText;
-            } else { 
-                alert("Ваш голос учтен! Переходим к карте..."); 
-                // Здесь в будущем будет переход на map.html
-                window.location.href = 'map.html';
-
-            }
+                region: region,
+                participation: { contact: document.getElementById('contact').value }
+            }]);
+            if(error) { alert("Ошибка: " + error.message); btn.disabled = false; }
+            else { window.location.href = 'map.html'; }
         }
     </script>
 </body>
