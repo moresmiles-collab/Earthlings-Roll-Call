@@ -1,37 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Global Roll Call Map</title>
+    <meta charset="UTF-8">
+    <title>Global Earthlings Map</title>
     <script src="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; padding: 0; background: #020617; }
+        body { margin: 0; padding: 0; background: #020617; font-family: sans-serif; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-        .stats-overlay {
+        .overlay {
             position: absolute; top: 20px; left: 20px;
-            background: rgba(15, 23, 42, 0.8); padding: 20px;
-            border-radius: 15px; color: white; font-family: sans-serif;
-            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(15, 23, 42, 0.9); padding: 25px;
+            border-radius: 20px; color: white; border: 1px solid rgba(56, 189, 248, 0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
         }
+        .count-num { font-size: 48px; font-weight: bold; color: #38bdf8; display: block; }
+        .btn-back { margin-top: 15px; display: inline-block; color: #94a3b8; text-decoration: none; font-size: 12px; border: 1px solid #334155; padding: 5px 10px; rounded: 5px; }
     </style>
 </head>
 <body>
+
     <div id="map"></div>
-    <div class="stats-overlay">
-        <h2 style="margin:0; color: #38bdf8;">Earthlings: <span id="count">...</span></h2>
-        <p style="font-size: 12px; color: #94a3b8;">Цель: 50% + 1</p>
+    
+    <div class="overlay">
+        <span class="count-num" id="count">0</span>
+        <div style="color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Землян на перекличке</div>
+        <div style="margin-top: 10px; height: 4px; background: #1e293b; border-radius: 2px; overflow: hidden;">
+            <div id="progress" style="width: 1%; height: 100%; background: #38bdf8; transition: width 1s;"></div>
+        </div>
+        <p style="font-size: 11px; color: #64748b; margin-top: 5px;">Цель: 50% + 1 голос планеты</p>
+        <a href="index.html" class="btn-back">← Вернуться к тесту</a>
     </div>
 
     <script>
+        const SUPABASE_URL = 'https://hgewwcxlhtuhzvkblpvi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhnZXd3Y3hsaHR1aHp2a2JscHZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTI2NTksImV4cCI6MjA5MTc2ODY1OX0.m8Q48c6XQj5JaZ-H1ECvFBGHzNomlkpdRtpa42ijyGo';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         const map = new maplibregl.Map({
             container: 'map',
-            style: 'https://demotiles.maplibre.org/style.json', // Базовая темная карта
+            style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
             center: [30.5234, 50.4501], // Старт с Киева
             zoom: 2
         });
 
-        // Тут мы добавим логику запроса к вашей базе Supabase
-        // Чтобы карта рисовала круги: чем больше Землян в городе, тем больше круг
+        async function updateStats() {
+            const { count, error } = await _supabase
+                .from('users')
+                .select('*', { count: 'exact', head: true });
+
+            if (!error) {
+                document.getElementById('count').innerText = count;
+                // Маленькая анимация прогресса (пока от 2 миллиардов далеко, сделаем символически)
+                const percent = Math.min((count / 100) * 100, 100); 
+                document.getElementById('progress').style.width = percent + '%';
+            }
+        }
+
+        map.on('load', () => {
+            updateStats();
+            setInterval(updateStats, 10000); // Обновлять каждые 10 секунд
+        });
     </script>
 </body>
 </html>
