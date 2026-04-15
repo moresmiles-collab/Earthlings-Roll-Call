@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Global Roll Call Map</title>
+    <script src="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.x/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        body { margin: 0; padding: 0; background: #020617; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .stats-overlay {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(15, 23, 42, 0.8); padding: 20px;
+            border-radius: 15px; color: white; font-family: sans-serif;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="stats-overlay">
+        <h2 style="margin:0; color: #38bdf8;">Earthlings: <span id="count">...</span></h2>
+        <p style="font-size: 12px; color: #94a3b8;">Цель: 50% + 1</p>
+    </div>
+
+    <script>
+        const map = new maplibregl.Map({
+            container: 'map',
+            style: 'https://demotiles.maplibre.org/style.json', // Базовая темная карта
+            center: [30.5234, 50.4501], // Старт с Киева
+            zoom: 2
+        });
+
+        // Тут мы добавим логику запроса к вашей базе Supabase
+        // Чтобы карта рисовала круги: чем больше Землян в городе, тем больше круг
+    </script>
+</body>
+</html>
