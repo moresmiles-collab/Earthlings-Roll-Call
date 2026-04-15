@@ -82,34 +82,44 @@
                 document.getElementById('msg').innerText = "Спасибо за участие в перекличке!";
             }
         }
-async function save() {
-    // Получаем примерную локацию по IP (бесплатно и анонимно)
-    let city = "Unknown";
-    try {
-        const response = await fetch('https://ipapi.co/json/');
-        const geo = await response.json();
-        city = `${geo.city}, ${geo.country_name}`;
-    } catch (e) { console.log("Geo lookup failed"); }
+        async function save() {
+            const btn = document.querySelector('#s3 button');
+            btn.innerText = "СВЯЗЬ С ПЛАНЕТОЙ..."; // Визуальный отклик
+            btn.disabled = true;
 
-    const userData = {
-        name: document.getElementById('userName').value,
-        status: document.getElementById('status').innerText,
-        score: document.querySelectorAll('.q-check:checked').length,
-        region: city, // Теперь здесь будет например "Kyiv, Ukraine" или "Songmen, China"
-        participation: { 
-            contact: document.getElementById('contact').value, 
-            ready: true 
-        }
-    };
+            let city = "Unknown Region";
+            try {
+                // Пытаемся узнать город с таймаутом 2 секунды
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                
+                const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+                const geo = await response.json();
+                city = `${geo.city}, ${geo.country_name}`;
+                clearTimeout(timeoutId);
+            } catch (e) { 
+                console.log("Geo lookup skipped or failed"); 
+            }
 
-    const { error } = await _supabase.from('users').insert([userData]);
-    if(error) alert("Ошибка: " + error.message);
-    else { 
-        alert("Ваш голос учтен на карте мира!"); 
-        location.reload(); 
-    }
-}
+            const userData = {
+                name: document.getElementById('userName').value,
+                status: document.getElementById('status').innerText,
+                score: document.querySelectorAll('.q-check:checked').length,
+                region: city,
+                participation: { 
+                    contact: document.getElementById('contact').value, 
+                    ready: true 
+                }
+            };
+
+            const { error } = await _supabase.from('users').insert([userData]);
+            
+            if(error) {
+                alert("Ошибка связи: " + error.message);
+                btn.disabled = false;
+                btn.innerText = "ОТПРАВИТЬ В БАЗУ";
+            } else { 
+                alert("Ваш голос учтен на карте мира!"); 
+                location.reload(); 
+            }
         }
-    </script>
-</body>
-</html>
